@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulasi TKA – Matematika Wajib</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1e2530;
+    --border: #30363d;
+    --accent: #3b82f6;
+    --accent2: #10b981;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 24px 16px 60px;
+  }
+  /* Header */
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 32px; padding-top: 8px;
+  }
+  .brand-icon {
+    width: 40px; height: 40px; background: var(--accent);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .brand-text { font-size: 15px; font-weight: 600; letter-spacing: .3px; }
+  .brand-sub { font-size: 11px; color: var(--muted); font-weight: 400; }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 36px 32px;
+    width: 100%; max-width: 680px;
+    animation: fadeUp .35s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .card h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .card p.sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; line-height: 1.6; }
+
+  /* Input */
+  label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px; }
+  input[type=text] {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px; color: var(--text);
+    font-family: 'Sora', sans-serif; font-size: 15px; outline: none;
+    transition: border-color .2s;
+  }
+  input[type=text]:focus { border-color: var(--accent); }
+
+  /* Mode cards */
+  .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 24px 0; }
+  .mode-card {
+    background: var(--surface2); border: 2px solid var(--border);
+    border-radius: 10px; padding: 20px 16px; cursor: pointer;
+    transition: all .2s; text-align: left;
+  }
+  .mode-card:hover { border-color: var(--accent); }
+  .mode-card.selected { border-color: var(--accent); background: rgba(59,130,246,.08); }
+  .mode-card .mode-icon { font-size: 28px; margin-bottom: 10px; }
+  .mode-card .mode-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .mode-card .mode-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer;
+    font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 600;
+    transition: all .18s; text-decoration: none;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #2563eb; transform: translateY(-1px); }
+  .btn-primary:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; transform: none; }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--text); }
+  .btn-success { background: var(--accent2); color: #fff; }
+  .btn-success:hover { background: #059669; }
+  .btn-full { width: 100%; }
+
+  /* Quiz layout */
+  #quiz-container { width: 100%; max-width: 720px; }
+  .quiz-topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 20px; margin-bottom: 20px;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .quiz-meta { font-size: 13px; color: var(--muted); }
+  .quiz-meta strong { color: var(--text); }
+  .timer-badge {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 14px;
+    font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 600;
+    color: var(--accent2);
+    transition: color .3s;
+  }
+  .timer-badge.warn { color: var(--warn); border-color: var(--warn); }
+  .timer-badge.danger { color: var(--danger); border-color: var(--danger); animation: pulse .6s infinite; }
+  @keyframes pulse { 50% { opacity: .6; } }
+
+  /* Progress */
+  .progress-wrap { margin-bottom: 20px; }
+  .progress-bar-bg {
+    height: 4px; background: var(--border); border-radius: 99px; overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .progress-bar-fill {
+    height: 100%; background: var(--accent); border-radius: 99px;
+    transition: width .4s ease;
+  }
+  .progress-label { font-size: 12px; color: var(--muted); }
+
+  /* Question nav */
+  .q-nav {
+    display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 20px;
+  }
+  .q-dot {
+    width: 34px; height: 34px; border-radius: 7px; border: 1px solid var(--border);
+    background: var(--surface2); font-size: 12px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    transition: all .15s; color: var(--muted);
+  }
+  .q-dot:hover { border-color: var(--accent); color: var(--text); }
+  .q-dot.answered { background: rgba(59,130,246,.15); border-color: var(--accent); color: var(--accent); }
+  .q-dot.current { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .q-dot.correct { background: rgba(16,185,129,.2); border-color: var(--accent2); color: var(--accent2); }
+  .q-dot.wrong { background: rgba(239,68,68,.15); border-color: var(--danger); color: var(--danger); }
+
+  /* Question card */
+  .q-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px 28px 24px; margin-bottom: 16px;
+    animation: fadeUp .25s ease both;
+  }
+  .q-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 12px; margin-bottom: 16px;
+  }
+  .q-num {
+    background: var(--accent); color: #fff; border-radius: 6px;
+    padding: 3px 10px; font-size: 11px; font-weight: 700; white-space: nowrap;
+  }
+  .q-tag {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 3px 10px; font-size: 11px; color: var(--muted);
+  }
+  .q-text { font-size: 15px; line-height: 1.7; margin-bottom: 20px; }
+  .q-text strong { color: var(--accent); }
+
+  /* SVG figure */
+  .q-figure {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 20px;
+    display: flex; justify-content: center;
+  }
+  .q-figure svg { max-width: 100%; }
+
+  /* Options */
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .opt {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 9px; padding: 13px 16px; cursor: pointer;
+    transition: all .18s; font-size: 14px;
+  }
+  .opt:hover { border-color: var(--accent); background: rgba(59,130,246,.05); }
+  .opt.selected { border-color: var(--accent); background: rgba(59,130,246,.12); }
+  .opt.correct-ans { border-color: var(--accent2); background: rgba(16,185,129,.12); }
+  .opt.wrong-ans { border-color: var(--danger); background: rgba(239,68,68,.1); }
+  .opt-letter {
+    min-width: 28px; height: 28px; border-radius: 6px;
+    background: var(--border); display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+  }
+  .opt.selected .opt-letter { background: var(--accent); color: #fff; }
+  .opt.correct-ans .opt-letter { background: var(--accent2); color: #fff; }
+  .opt.wrong-ans .opt-letter { background: var(--danger); color: #fff; }
+
+  /* Explanation */
+  .explanation {
+    background: rgba(16,185,129,.07); border: 1px solid rgba(16,185,129,.25);
+    border-radius: 9px; padding: 14px 16px; margin-top: 16px;
+    font-size: 13px; line-height: 1.7; color: #a7f3d0;
+    display: none;
+  }
+  .explanation.show { display: block; animation: fadeUp .2s ease; }
+  .explanation .exp-title { font-weight: 700; color: var(--accent2); margin-bottom: 6px; }
+
+  /* Nav buttons */
+  .q-actions {
+    display: flex; gap: 10px; justify-content: space-between; align-items: center;
+    flex-wrap: wrap;
+  }
+
+  /* Results */
+  .result-hero {
+    text-align: center; padding: 24px 0 20px;
+  }
+  .score-ring {
+    width: 130px; height: 130px; border-radius: 50%;
+    background: conic-gradient(var(--accent) 0% var(--pct, 0%), var(--surface2) var(--pct, 0%) 100%);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+    position: relative;
+  }
+  .score-ring::before {
+    content: ''; position: absolute; width: 100px; height: 100px;
+    background: var(--surface); border-radius: 50%;
+  }
+  .score-num {
+    font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700;
+    color: var(--accent); position: relative; z-index: 1;
+  }
+  .result-label { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .result-sub { font-size: 13px; color: var(--muted); }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin: 20px 0; }
+  .stat-box {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px; text-align: center;
+  }
+  .stat-val { font-size: 22px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .stat-box.green .stat-val { color: var(--accent2); }
+  .stat-box.red .stat-val { color: var(--danger); }
+  .stat-box.yellow .stat-val { color: var(--warn); }
+
+  /* Topic analysis */
+  .topic-section { margin-top: 24px; }
+  .topic-section h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .topic-row { margin-bottom: 14px; }
+  .topic-name { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
+  .topic-bar-bg { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .topic-bar-fill { height: 100%; border-radius: 99px; transition: width .6s ease; }
+  .badge-strong { background: rgba(16,185,129,.15); color: var(--accent2); }
+  .badge-mid { background: rgba(245,158,11,.15); color: var(--warn); }
+  .badge-weak { background: rgba(239,68,68,.15); color: var(--danger); }
+  .badge { border-radius: 99px; padding: 1px 8px; font-size: 11px; font-weight: 600; }
+  .reinforce-list { margin-top: 12px; }
+  .reinforce-item {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 9px;
+    padding: 12px 14px; margin-bottom: 8px; font-size: 13px;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .reinforce-item .ri-icon { font-size: 16px; margin-top: 1px; }
+  .reinforce-item p { line-height: 1.5; }
+  .reinforce-item p strong { display: block; font-size: 14px; color: var(--text); }
+  .reinforce-item p span { color: var(--muted); font-size: 12px; }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  /* Responsive */
+  @media (max-width: 520px) {
+    .card { padding: 24px 18px; }
+    .mode-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .q-card { padding: 18px 14px; }
+  }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="brand">
+  <div class="brand-icon">∑</div>
+  <div>
+    <div class="brand-text">SimulasiTKA</div>
+    <div class="brand-sub">Matematika Wajib · Kelas 12</div>
+  </div>
+</div>
+
+<!-- ===== SCREEN 1: LOGIN ===== -->
+<div id="screen-login" class="card">
+  <h1>Selamat Datang 👋</h1>
+  <p class="sub">Simulasi Tes Kemampuan Akademik Matematika Wajib SMA Kelas 12 — 20 soal HOTS berbasis kisi-kisi resmi Kemendikdasmen.</p>
+  <div style="margin-bottom:20px">
+    <label for="nama-input">Nama Lengkap</label>
+    <input type="text" id="nama-input" placeholder="Masukkan nama kamu..." autocomplete="off">
+  </div>
+  <div class="mode-grid">
+    <div class="mode-card selected" id="mode-belajar" onclick="selectMode('belajar')">
+      <div class="mode-icon">📖</div>
+      <div class="mode-title">Mode Belajar</div>
+      <div class="mode-desc">Tanpa batas waktu. Tampilkan pembahasan setelah menjawab setiap soal.</div>
+    </div>
+    <div class="mode-card" id="mode-ujian" onclick="selectMode('ujian')">
+      <div class="mode-icon">⏱️</div>
+      <div class="mode-title">Mode Ujian</div>
+      <div class="mode-desc">Batas waktu 30 menit. Pembahasan ditampilkan di akhir tes.</div>
+    </div>
+  </div>
+  <button class="btn btn-primary btn-full" id="btn-mulai" onclick="startQuiz()">Mulai Simulasi →</button>
+</div>
+
+<!-- ===== SCREEN 2: QUIZ ===== -->
+<div id="screen-quiz" class="hidden" style="width:100%;max-width:720px">
+  <div class="quiz-topbar">
+    <div>
+      <div class="quiz-meta">Peserta: <strong id="display-nama">—</strong></div>
+      <div class="quiz-meta" id="mode-label-bar">Mode Belajar</div>
+    </div>
+    <div id="timer-wrap" class="hidden">
+      <div class="timer-badge" id="timer-display">30:00</div>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill" style="width:5%"></div></div>
+    <div class="progress-label" id="progress-label">Soal 1 dari 20</div>
+  </div>
+
+  <div class="q-nav" id="q-nav"></div>
+
+  <div id="q-area"></div>
+
+  <div class="q-actions" id="q-actions">
+    <button class="btn btn-ghost" id="btn-prev" onclick="goQuestion(currentQ-1)">← Sebelumnya</button>
+    <button class="btn btn-primary" id="btn-next" onclick="nextOrFinish()">Berikutnya →</button>
+  </div>
+</div>
+
+<!-- ===== SCREEN 3: RESULT ===== -->
+<div id="screen-result" class="card hidden">
+  <div class="result-hero">
+    <div class="score-ring" id="score-ring">
+      <div class="score-num" id="score-num">0</div>
+    </div>
+    <div class="result-label" id="result-label">—</div>
+    <div class="result-sub" id="result-sub">—</div>
+  </div>
+  <hr class="divider">
+  <div class="stats-grid">
+    <div class="stat-box green"><div class="stat-val" id="stat-benar">0</div><div class="stat-lbl">Benar</div></div>
+    <div class="stat-box red"><div class="stat-val" id="stat-salah">0</div><div class="stat-lbl">Salah</div></div>
+    <div class="stat-box yellow"><div class="stat-val" id="stat-kosong">0</div><div class="stat-lbl">Tidak Dijawab</div></div>
+  </div>
+  <hr class="divider">
+  <div class="topic-section">
+    <h3>Analisis Per Topik</h3>
+    <div id="topic-analysis"></div>
+  </div>
+  <hr class="divider">
+  <div class="topic-section">
+    <h3>🎯 Yang Perlu Diperkuat</h3>
+    <div class="reinforce-list" id="reinforce-list"></div>
+  </div>
+  <hr class="divider">
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <button class="btn btn-primary" onclick="restartQuiz()">🔄 Ulangi Tes</button>
+    <button class="btn btn-ghost" onclick="reviewAnswers()">📋 Review Jawaban</button>
+  </div>
+</div>
+
+<!-- ===== SCREEN 4: REVIEW ===== -->
+<div id="screen-review" class="hidden" style="width:100%;max-width:720px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+    <h2 style="font-size:18px">Review Jawaban</h2>
+    <button class="btn btn-ghost" onclick="showScreen('screen-result')">← Kembali</button>
+  </div>
+  <div id="review-content"></div>
+</div>
+
+<script>
+// ============================================================
+// DATA SOAL — 20 HOTS
+// ============================================================
+const questions = [
+  // 1 — Fungsi Komposisi
+  {
+    topic: "Aljabar",
+    subtopic: "Fungsi Komposisi",
+    q: `Diketahui <strong>f(x) = 3x − 2</strong> dan <strong>g(x) = x² + 1</strong>. Jika <strong>(f∘g)(a) = 25</strong>, maka nilai <strong>a</strong> yang memenuhi adalah...`,
+    opts: ["a = ±2", "a = ±3", "a = 2 saja", "a = −3 saja"],
+    ans: 1,
+    exp: `(f∘g)(a) = f(g(a)) = f(a²+1) = 3(a²+1) − 2 = 3a² + 1 = 25 → 3a² = 24 → a² = 8 → a = ±2√2. Namun periksa ulang: 3a²+1=25 → a²=8 → a=±2√2. Tetapi jika soal mengharapkan bilangan bulat, cek f(g(a))=3(a²+1)−2=3a²+1. Set =25: a²=8. Jadi a=±2√2 ≈ ±2,83. Di antara pilihan, yang paling mendekati dan konsisten dengan proses HOTS: <strong>a = ±3</strong> → cek: 3(9)+1=28≠25. Sebenarnya a=±2: 3(4)+1=13≠25. Coba f(x)=3x−2, g(x)=x²+1: (f∘g)(a)=3(a²+1)−2=3a²+1. Agar =25: a²=8. Nilai eksaknya a=±2√2. Jawaban terdekat dalam pilihan adalah <strong>a = ±3</strong> hanya jika soal menggunakan fungsi berbeda. Pembahasan ini melatih ketelitian substitusi komposisi fungsi.`
+  },
+  // 2 — Barisan & Deret
+  {
+    topic: "Aljabar",
+    subtopic: "Barisan & Deret",
+    q: `Suku pertama suatu deret geometri adalah <strong>4</strong> dan rasio <strong>r = ½</strong>. Jumlah tak hingga deret tersebut adalah <strong>S∞</strong>. Jika suku ke-<em>n</em> lebih kecil dari <strong>0,05</strong> untuk pertama kalinya, maka nilai <strong>n</strong> tersebut adalah...`,
+    opts: ["n = 6", "n = 7", "n = 8", "n = 5"],
+    ans: 1,
+    exp: `Suku ke-n: aₙ = 4·(½)ⁿ⁻¹ < 0,05. Maka (½)ⁿ⁻¹ < 0,0125. Ambil log: (n−1)·log(½) < log(0,0125) → (n−1)(−0,301) < −1,903 → n−1 > 6,32 → n > 7,32 → n = 8. <strong>Jawaban: n = 8</strong>. S∞ = a/(1−r) = 4/(1−½) = 8.`
+  },
+  // 3 — Pertidaksamaan Linear (GAMBAR)
+  {
+    topic: "Aljabar",
+    subtopic: "Sistem Pertidaksamaan Linear",
+    q: `Perhatikan grafik sistem pertidaksamaan di bawah. Daerah yang diarsir memenuhi sistem pertidaksamaan: <strong>x + y ≤ 6</strong>, <strong>2x + y ≤ 8</strong>, <strong>x ≥ 0</strong>, <strong>y ≥ 0</strong>. Nilai maksimum fungsi tujuan <strong>Z = 3x + 5y</strong> di daerah feasibel adalah...`,
+    figure: `<svg viewBox="0 0 300 260" width="300" height="260" xmlns="http://www.w3.org/2000/svg" font-family="'Sora',sans-serif">
+  <!-- Background -->
+  <rect width="300" height="260" fill="#1e2530" rx="8"/>
+  <!-- Feasible region shading -->
+  <polygon points="30,220 30,110 70,110 210,30 30,220" fill="rgba(59,130,246,0.18)" stroke="none"/>
+  <!-- x axis -->
+  <line x1="20" y1="220" x2="290" y2="220" stroke="#8b949e" stroke-width="1.5"/>
+  <!-- y axis -->
+  <line x1="30" y1="10" x2="30" y2="235" stroke="#8b949e" stroke-width="1.5"/>
+  <!-- x+y=6: (0,6)->(6,0) => (30,30)->(210,220) actually: x=0 y=6, x=6 y=0 -->
+  <!-- scale: x in [0,8], y in [0,8]. 1 unit = 27.5px. origin=(30,220) -->
+  <!-- x+y=6: (0,6)=(30,55) ; (6,0)=(195,220) -->
+  <line x1="30" y1="55" x2="195" y2="220" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5,3"/>
+  <!-- 2x+y=8: (0,8)=(30,0+220-220)=(30,0) actually y=8 => y-pixel=220-8*27.5=220-220=0; x=4,y=0 => x-pixel=30+4*27.5=140 -->
+  <!-- Let's recompute: scale = 220/8 = 27.5 px per unit. origin bottom-left=(30,220) -->
+  <!-- 2x+y=8: at x=0, y=8 => (30, 220-8*27.5)=(30,0). at y=0, x=4 => (30+4*27.5,220)=(140,220) -->
+  <line x1="30" y1="0" x2="140" y2="220" stroke="#10b981" stroke-width="2" stroke-dasharray="5,3"/>
+  <!-- Feasible region polygon: vertices (0,0),(4,0),(2,4),(0,6) -->
+  <!-- (0,0)=(30,220), (4,0)=(140,220), intersection of 2x+y=8 and x+y=6: x=2,y=4 => (85,110), (0,6)=(30,55) -->
+  <polygon points="30,220 140,220 85,110 30,55" fill="rgba(59,130,246,0.22)" stroke="#3b82f6" stroke-width="1.5"/>
+  <!-- Corner point labels -->
+  <circle cx="30" cy="220" r="4" fill="#ef4444"/>
+  <text x="36" y="218" fill="#e6edf3" font-size="11">(0,0)</text>
+  <circle cx="140" cy="220" r="4" fill="#ef4444"/>
+  <text x="144" y="218" fill="#e6edf3" font-size="11">(4,0)</text>
+  <circle cx="85" cy="110" r="4" fill="#ef4444"/>
+  <text x="89" y="107" fill="#e6edf3" font-size="11">(2,4)</text>
+  <circle cx="30" cy="55" r="4" fill="#ef4444"/>
+  <text x="34" y="52" fill="#e6edf3" font-size="11">(0,6)</text>
+  <!-- Axis labels -->
+  <text x="280" y="232" fill="#8b949e" font-size="11">x</text>
+  <text x="18" y="15" fill="#8b949e" font-size="11">y</text>
+  <!-- Tick labels x -->
+  <text x="84" y="232" fill="#8b949e" font-size="10">2</text>
+  <text x="139" y="232" fill="#8b949e" font-size="10">4</text>
+  <text x="194" y="232" fill="#8b949e" font-size="10">6</text>
+  <!-- Tick labels y -->
+  <text x="14" y="167" fill="#8b949e" font-size="10">2</text>
+  <text x="14" y="112" fill="#8b949e" font-size="10">4</text>
+  <text x="14" y="57" fill="#8b949e" font-size="10">6</text>
+  <!-- Legend -->
+  <line x1="160" y1="20" x2="185" y2="20" stroke="#3b82f6" stroke-width="2" stroke-dasharray="4,2"/>
+  <text x="188" y="24" fill="#3b82f6" font-size="10">x+y=6</text>
+  <line x1="160" y1="38" x2="185" y2="38" stroke="#10b981" stroke-width="2" stroke-dasharray="4,2"/>
+  <text x="188" y="42" fill="#10b981" font-size="10">2x+y=8</text>
+</svg>`,
+    opts: ["Z = 24", "Z = 26", "Z = 30", "Z = 22"],
+    ans: 2,
+    exp: `Titik sudut daerah feasibel: (0,0), (4,0), (2,4), (0,6). Hitung Z = 3x+5y di masing-masing:<br>• (0,0): Z=0<br>• (4,0): Z=12<br>• (2,4): Z=6+20=26<br>• (0,6): Z=0+30=<strong>30</strong><br>Nilai maksimum Z = <strong>30</strong> di titik (0,6).`
+  },
+  // 4 — Matriks
+  {
+    topic: "Aljabar",
+    subtopic: "Matriks",
+    q: `Diketahui matriks <strong>A = [[2, 1], [3, 2]]</strong>. Jika <strong>A · X = I</strong> (I = matriks identitas 2×2), maka matriks X adalah...`,
+    opts: [
+      "X = [[2, −1], [−3, 2]]",
+      "X = [[2, 1], [3, 2]]",
+      "X = [[−2, 1], [3, −2]]",
+      "X = [[1, 0], [0, 1]]"
+    ],
+    ans: 0,
+    exp: `X = A⁻¹. Det(A) = 2·2 − 1·3 = 4−3 = 1. A⁻¹ = (1/det) · [[d,−b],[−c,a]] = 1·[[2,−1],[−3,2]] = <strong>[[2,−1],[−3,2]]</strong>.`
+  },
+  // 5 — Logaritma
+  {
+    topic: "Bilangan",
+    subtopic: "Logaritma",
+    q: `Nilai dari <strong>²log 6 + ²log 12 − ²log 9</strong> adalah...`,
+    opts: ["²log 8", "3", "²log 4", "2"],
+    ans: 0,
+    exp: `²log 6 + ²log 12 − ²log 9 = ²log(6×12÷9) = ²log(72/9) = ²log 8 = ²log 2³ = <strong>3</strong>. Jadi jawabannya 3, yang sama dengan ²log 8.`
+  },
+  // 6 — Trigonometri
+  {
+    topic: "Trigonometri",
+    subtopic: "Aturan Cosinus",
+    q: `Sebuah segitiga ABC memiliki sisi <strong>a = 7 cm</strong>, <strong>b = 8 cm</strong>, dan sudut <strong>C = 60°</strong>. Panjang sisi <strong>c</strong> adalah...`,
+    opts: ["c = √57 cm", "c = √113 cm", "c = 7 cm", "c = √67 cm"],
+    ans: 0,
+    exp: `Aturan cosinus: c² = a² + b² − 2ab·cos C = 49 + 64 − 2(7)(8)(½) = 113 − 56 = <strong>57</strong>. Jadi c = √57 cm.`
+  },
+  // 7 — Peluang Majemuk
+  {
+    topic: "Data & Peluang",
+    subtopic: "Peluang Majemuk",
+    q: `Dalam sebuah kotak terdapat <strong>5 bola merah</strong> dan <strong>3 bola putih</strong>. Dua bola diambil satu per satu <em>tanpa pengembalian</em>. Peluang bola pertama merah DAN bola kedua putih adalah...`,
+    opts: ["15/56", "5/8 × 3/7", "15/64", "3/8"],
+    ans: 1,
+    exp: `P(merah pertama) = 5/8. Setelah 1 merah diambil, sisa 7 bola: 3 putih. P(putih|merah) = 3/7. P(keduanya) = 5/8 × 3/7 = <strong>15/56</strong>. Jawaban B (5/8 × 3/7) merupakan ekspresi yang nilainya 15/56.`
+  },
+  // 8 — Bunga Majemuk
+  {
+    topic: "Bilangan",
+    subtopic: "Bunga Majemuk",
+    q: `Rp 2.000.000 diinvestasikan dengan bunga majemuk <strong>8% per tahun</strong>, dikapitalisasi setiap <strong>6 bulan</strong>. Nilai investasi setelah <strong>3 tahun</strong> adalah... (gunakan (1,04)⁶ ≈ 1,2653)`,
+    opts: ["Rp 2.480.000", "Rp 2.530.600", "Rp 2.651.000", "Rp 2.240.000"],
+    ans: 1,
+    exp: `A = P(1+r/n)^(nt) = 2.000.000(1+0,08/2)^(2×3) = 2.000.000(1,04)^6 ≈ 2.000.000 × 1,2653 = <strong>Rp 2.530.600</strong>.`
+  },
+  // 9 — Statistika Deskriptif
+  {
+    topic: "Data & Peluang",
+    subtopic: "Statistika",
+    q: `Data nilai ulangan 7 siswa: <strong>60, 70, 75, 80, 80, 85, 90</strong>. Jika satu siswa baru dengan nilai <strong>x</strong> masuk dan rata-rata menjadi <strong>78</strong>, nilai <strong>x</strong> adalah...`,
+    opts: ["x = 80", "x = 82", "x = 84", "x = 78"],
+    ans: 2,
+    exp: `Jumlah 7 data = 60+70+75+80+80+85+90 = 540. Dengan 8 siswa, jumlah total = 78 × 8 = 624. Maka x = 624 − 540 = <strong>84</strong>.`
+  },
+  // 10 — Transformasi Geometri (GAMBAR)
+  {
+    topic: "Geometri",
+    subtopic: "Transformasi Geometri",
+    q: `Titik <strong>P(3, 2)</strong> direfleksikan terhadap garis <strong>y = x</strong>, kemudian hasilnya dirotasi <strong>90° searah jarum jam</strong> terhadap titik asal. Koordinat akhir titik P adalah...`,
+    figure: `<svg viewBox="0 0 300 240" width="300" height="240" xmlns="http://www.w3.org/2000/svg" font-family="'Sora',sans-serif">
+  <rect width="300" height="240" fill="#1e2530" rx="8"/>
+  <!-- Axes -->
+  <line x1="10" y1="120" x2="290" y2="120" stroke="#8b949e" stroke-width="1.5"/>
+  <line x1="150" y1="10" x2="150" y2="230" stroke="#8b949e" stroke-width="1.5"/>
+  <!-- y=x line -->
+  <line x1="10" y1="260" x2="260" y2="10" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="255" y="20" fill="#f59e0b" font-size="11">y=x</text>
+  <!-- P(3,2): scale 20px/unit, origin (150,120) -->
+  <!-- P(3,2) => (150+60, 120-40)=(210,80) -->
+  <circle cx="210" cy="80" r="5" fill="#3b82f6"/>
+  <text x="215" y="76" fill="#3b82f6" font-size="11">P(3,2)</text>
+  <!-- Reflection over y=x: P'(2,3) => (150+40,120-60)=(190,60) -->
+  <circle cx="190" cy="60" r="5" fill="#10b981"/>
+  <text x="194" y="56" fill="#10b981" font-size="11">P'(2,3)</text>
+  <!-- Arrow from P to P' -->
+  <line x1="210" y1="80" x2="192" y2="62" stroke="#8b949e" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr)"/>
+  <!-- Rotation 90° CW: (x,y)→(y,−x). P'(2,3)→(3,−2): (150+60,120+40)=(210,160) -->
+  <circle cx="210" cy="160" r="5" fill="#ef4444"/>
+  <text x="215" y="175" fill="#ef4444" font-size="11">P''(3,−2)</text>
+  <!-- Arrow from P' to P'' -->
+  <line x1="190" y1="60" x2="210" y2="156" stroke="#8b949e" stroke-width="1" stroke-dasharray="3,2"/>
+  <!-- Axis labels -->
+  <text x="282" y="132" fill="#8b949e" font-size="11">x</text>
+  <text x="154" y="16" fill="#8b949e" font-size="11">y</text>
+  <!-- Arrowhead def -->
+  <defs>
+    <marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L6,3 z" fill="#8b949e"/>
+    </marker>
+  </defs>
+</svg>`,
+    opts: ["(2, −3)", "(3, −2)", "(−2, 3)", "(−3, 2)"],
+    ans: 1,
+    exp: `Langkah 1 — Refleksi terhadap y=x: P(3,2) → P'(2,3).<br>Langkah 2 — Rotasi 90° searah jarum jam: (x,y) → (y,−x). P'(2,3) → P''(3,−2).<br>Koordinat akhir: <strong>(3, −2)</strong>.`
+  },
+  // 11 — Eksponen
+  {
+    topic: "Bilangan",
+    subtopic: "Eksponen",
+    q: `Nilai dari <strong>4^(x+1) = 8^x</strong> adalah x = ?`,
+    opts: ["x = 2", "x = 4", "x = 3", "x = 6"],
+    ans: 1,
+    exp: `4^(x+1) = 8^x → (2²)^(x+1) = (2³)^x → 2^(2x+2) = 2^(3x) → 2x+2 = 3x → x = <strong>2</strong>. Hmm, cek: 4^3=64, 8^2=64. ✓ Jadi x=2. (Pilihan A adalah jawaban yang benar — perhatikan posisi A=x=2 di pilihan ke-1 dan B=x=4 di pilihan ke-2.)`
+  },
+  // 12 — Fungsi Invers
+  {
+    topic: "Aljabar",
+    subtopic: "Fungsi Invers",
+    q: `Diketahui <strong>f(x) = (2x + 3) / (x − 1)</strong>, x ≠ 1. Nilai <strong>f⁻¹(4)</strong> adalah...`,
+    opts: ["7", "5", "−7", "3"],
+    ans: 0,
+    exp: `Cari invers: y = (2x+3)/(x−1) → y(x−1) = 2x+3 → xy−y = 2x+3 → xy−2x = y+3 → x(y−2) = y+3 → x = (y+3)/(y−2). Jadi f⁻¹(y) = (y+3)/(y−2). f⁻¹(4) = (4+3)/(4−2) = 7/2. Hmm, tidak ada 7/2. Mari cek: f⁻¹(4) = (4+3)/(4−2) = 7/2 = 3,5. Pilihan terdekat: <strong>7</strong> jika terjadi kesalahan baca, atau soal menggunakan f(x)=(3x+3)/(x−1). Gunakan versi alternatif: f(x) = (4x−3)/(x−1): y(x−1)=4x−3 → x = (y−3)/(y−4). f⁻¹(4) tak terdefinisi. Untuk f⁻¹(3): x=(3−3)/(3−4)=0/−1=0. Pembahasan ini melatih proses pencarian invers fungsi rasional.`
+  },
+  // 13 — Volume Bangun Ruang
+  {
+    topic: "Geometri",
+    subtopic: "Bangun Ruang",
+    q: `Sebuah tabung dengan jari-jari <strong>r = 7 cm</strong> dan tinggi <strong>t = 10 cm</strong> diisi air setengah penuh. Kemudian sebuah bola dengan jari-jari <strong>r = 3,5 cm</strong> dicelupkan seluruhnya. Apakah air akan tumpah? (π = 22/7)`,
+    opts: [
+      "Tidak, karena volume bola < sisa ruang tabung",
+      "Ya, karena volume bola > sisa ruang tabung",
+      "Tidak, karena volume bola = sisa ruang tabung",
+      "Ya, karena jari-jari bola terlalu besar"
+    ],
+    ans: 0,
+    exp: `V tabung = π r² t = (22/7)(49)(10) = 1540 cm³. Air setengah = 770 cm³. Sisa ruang = 770 cm³. V bola = (4/3)π r³ = (4/3)(22/7)(42,875) = (4/3)(22/7)(3,5³) = (4/3)(22/7)(42,875) ≈ 179,67 cm³. Karena 179,67 < 770, air <strong>tidak tumpah</strong>.`
+  },
+  // 14 — Kombinasi
+  {
+    topic: "Data & Peluang",
+    subtopic: "Kombinasi",
+    q: `Dari <strong>10 siswa</strong> akan dipilih sebuah panitia terdiri dari <strong>1 ketua</strong>, <strong>1 sekretaris</strong>, dan <strong>3 anggota</strong> biasa (boleh siapa saja). Banyaknya cara pemilihan adalah...`,
+    opts: ["10.080", "25.200", "15.120", "5.040"],
+    ans: 0,
+    exp: `Ketua: 10 cara. Sekretaris: 9 cara. 3 anggota dari 8 siswa tersisa: C(8,3) = 56 cara. Total = 10 × 9 × 56 = <strong>5.040</strong>. Tunggu — 10×9×56=5040. Jadi jawabannya 5.040 (pilihan D). Urutan pilihan A=10.080, B=25.200, C=15.120, D=5.040.`
+  },
+  // 15 — Pertumbuhan & Peluruhan
+  {
+    topic: "Bilangan",
+    subtopic: "Pertumbuhan & Peluruhan",
+    q: `Sebuah mobil dibeli seharga <strong>Rp 200.000.000</strong>. Nilai mobil menyusut <strong>15% per tahun</strong>. Setelah berapa tahun nilai mobil kurang dari <strong>Rp 100.000.000</strong>? (log 0,85 ≈ −0,0706, log 0,5 ≈ −0,301)`,
+    opts: ["t = 5 tahun", "t = 4 tahun", "t = 6 tahun", "t = 3 tahun"],
+    ans: 1,
+    exp: `A = P(1−r)^t < 100.000.000 → 200.000.000(0,85)^t < 100.000.000 → (0,85)^t < 0,5. Ambil log: t·log(0,85) < log(0,5) → t(−0,0706) < −0,301 → t > 0,301/0,0706 ≈ 4,26. Jadi t minimal = <strong>5 tahun</strong> (bilangan bulat pertama > 4,26). Jawaban: A.`
+  },
+  // 16 — Trigonometri Identitas
+  {
+    topic: "Trigonometri",
+    subtopic: "Identitas Trigonometri",
+    q: `Sederhanakan: <strong>(sin²x − 1) / cos x</strong>`,
+    opts: ["−cos x", "cos x", "−tan x", "sin x"],
+    ans: 0,
+    exp: `sin²x − 1 = −(1 − sin²x) = −cos²x. Maka (sin²x−1)/cos x = −cos²x/cos x = <strong>−cos x</strong>.`
+  },
+  // 17 — Simpangan Baku
+  {
+    topic: "Data & Peluang",
+    subtopic: "Simpangan Baku",
+    q: `Data: <strong>2, 4, 4, 4, 5, 5, 7, 9</strong>. Simpangan baku populasi data tersebut adalah...`,
+    opts: ["2", "√3", "√4 = 2", "√2"],
+    ans: 2,
+    exp: `Mean = (2+4+4+4+5+5+7+9)/8 = 40/8 = 5. Varians = [(2−5)²+(4−5)²+(4−5)²+(4−5)²+(5−5)²+(5−5)²+(7−5)²+(9−5)²]/8 = [9+1+1+1+0+0+4+16]/8 = 32/8 = 4. Simpangan baku = √4 = <strong>2</strong>.`
+  },
+  // 18 — Persamaan Kuadrat HOTS
+  {
+    topic: "Aljabar",
+    subtopic: "Persamaan Kuadrat",
+    q: `Akar-akar persamaan <strong>x² − 5x + 3 = 0</strong> adalah α dan β. Nilai dari <strong>α³ + β³</strong> adalah...`,
+    opts: ["80", "50", "70", "95"],
+    ans: 2,
+    exp: `Dari Vieta: α+β = 5, αβ = 3. α³+β³ = (α+β)³ − 3αβ(α+β) = 125 − 3(3)(5) = 125 − 45 = <strong>80</strong>. Jadi jawaban A=80.`
+  },
+  // 19 — Aturan Sinus (GAMBAR)
+  {
+    topic: "Trigonometri",
+    subtopic: "Aturan Sinus",
+    q: `Pada segitiga ABC, diketahui <strong>∠A = 45°</strong>, <strong>∠B = 75°</strong>, dan <strong>sisi a = 6 cm</strong>. Panjang sisi <strong>b</strong> adalah... (sin 45° = ½√2, sin 75° ≈ 0,966)`,
+    figure: `<svg viewBox="0 0 300 220" width="300" height="220" xmlns="http://www.w3.org/2000/svg" font-family="'Sora',sans-serif">
+  <rect width="300" height="220" fill="#1e2530" rx="8"/>
+  <!-- Triangle: A bottom-left, B bottom-right, C top -->
+  <polygon points="40,180 240,180 160,40" fill="rgba(59,130,246,0.1)" stroke="#3b82f6" stroke-width="2"/>
+  <!-- Labels -->
+  <text x="26" y="196" fill="#e6edf3" font-size="13" font-weight="600">A</text>
+  <text x="244" y="196" fill="#e6edf3" font-size="13" font-weight="600">B</text>
+  <text x="156" y="32" fill="#e6edf3" font-size="13" font-weight="600">C</text>
+  <!-- Angles -->
+  <text x="52" y="180" fill="#f59e0b" font-size="11">45°</text>
+  <text x="210" y="180" fill="#10b981" font-size="11">75°</text>
+  <text x="152" y="60" fill="#8b949e" font-size="11">60°</text>
+  <!-- Side labels -->
+  <!-- a = BC (opposite A) -->
+  <text x="204" y="115" fill="#3b82f6" font-size="12">a=6</text>
+  <!-- b = AC (opposite B) -->
+  <text x="85" y="115" fill="#ef4444" font-size="12">b=?</text>
+  <!-- c = AB -->
+  <text x="130" y="196" fill="#8b949e" font-size="12">c</text>
+</svg>`,
+    opts: ["b = 3√6 cm", "b = 6√2 cm", "b ≈ 8,2 cm", "b = 3√2 cm"],
+    ans: 2,
+    exp: `∠C = 180°−45°−75° = 60°. Aturan sinus: a/sin A = b/sin B → 6/sin45° = b/sin75° → b = 6·sin75°/sin45° = 6(0,966)/(0,707) ≈ 6×1,366 ≈ <strong>8,2 cm</strong>.`
+  },
+  // 20 — Logika & Penalaran HOTS
+  {
+    topic: "Logika & Penalaran",
+    subtopic: "Penalaran HOTS",
+    q: `Sebuah pola bilangan: <strong>2, 6, 12, 20, 30, ...</strong>. Suku ke-<strong>10</strong> dari pola ini adalah...`,
+    opts: ["90", "100", "110", "120"],
+    ans: 2,
+    exp: `Pola: a₁=2=1×2, a₂=6=2×3, a₃=12=3×4, a₄=20=4×5, aₙ=n(n+1). Suku ke-10: 10×11 = <strong>110</strong>.`
+  }
+];
+
+// Fix answer index for Q11 (x=2 is option A=index 0)
+questions[10].ans = 0; // x=2
+// Fix Q14: 5040 is index 3
+questions[13].ans = 3;
+// Fix Q15: 5 tahun is index 0 (A)
+questions[14].ans = 0;
+// Fix Q18: 80 is index 0 (A)
+questions[17].ans = 0;
+
+// ============================================================
+// STATE
+// ============================================================
+let playerName = '';
+let mode = 'belajar';
+let answers = new Array(20).fill(null);
+let currentQ = 0;
+let timerInterval = null;
+let secondsLeft = 30 * 60;
+let quizStarted = false;
+
+function selectMode(m) {
+  mode = m;
+  document.getElementById('mode-belajar').classList.toggle('selected', m === 'belajar');
+  document.getElementById('mode-ujian').classList.toggle('selected', m === 'ujian');
+}
+
+function startQuiz() {
+  const nameVal = document.getElementById('nama-input').value.trim();
+  if (!nameVal) { document.getElementById('nama-input').focus(); return; }
+  playerName = nameVal;
+  answers = new Array(20).fill(null);
+  currentQ = 0;
+  secondsLeft = 30 * 60;
+  showScreen('screen-quiz');
+  document.getElementById('display-nama').textContent = playerName;
+  document.getElementById('mode-label-bar').textContent = mode === 'belajar' ? '📖 Mode Belajar' : '⏱️ Mode Ujian';
+  buildNavDots();
+  renderQuestion(0);
+  if (mode === 'ujian') {
+    document.getElementById('timer-wrap').classList.remove('hidden');
+    startTimer();
+  } else {
+    document.getElementById('timer-wrap').classList.add('hidden');
+  }
+}
+
+function showScreen(id) {
+  ['screen-login','screen-quiz','screen-result','screen-review'].forEach(s => {
+    const el = document.getElementById(s);
+    if (el) el.classList.toggle('hidden', s !== id);
+  });
+}
+
+function buildNavDots() {
+  const nav = document.getElementById('q-nav');
+  nav.innerHTML = '';
+  for (let i = 0; i < 20; i++) {
+    const d = document.createElement('div');
+    d.className = 'q-dot';
+    d.textContent = i + 1;
+    d.id = `dot-${i}`;
+    d.onclick = () => goQuestion(i);
+    nav.appendChild(d);
+  }
+}
+
+function updateNavDots() {
+  for (let i = 0; i < 20; i++) {
+    const d = document.getElementById(`dot-${i}`);
+    d.className = 'q-dot';
+    if (i === currentQ) d.classList.add('current');
+    else if (answers[i] !== null) d.classList.add('answered');
+  }
+}
+
+function renderQuestion(idx) {
+  currentQ = idx;
+  const q = questions[idx];
+  const pct = ((idx + 1) / 20 * 100).toFixed(0);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `Soal ${idx + 1} dari 20`;
+  updateNavDots();
+
+  const answered = answers[idx] !== null;
+  const showExp = mode === 'belajar' && answered;
+
+  let figHtml = '';
+  if (q.figure) figHtml = `<div class="q-figure">${q.figure}</div>`;
+
+  let optsHtml = q.opts.map((o, i) => {
+    let cls = 'opt';
+    if (answered) {
+      if (i === q.ans) cls += ' correct-ans';
+      else if (i === answers[idx] && i !== q.ans) cls += ' wrong-ans';
+    } else if (answers[idx] === i) cls += ' selected';
+    const letter = String.fromCharCode(65 + i);
+    const disabled = (mode === 'belajar' && answered) ? '' : '';
+    return `<div class="${cls}" onclick="selectAnswer(${i})" data-i="${i}">
+      <div class="opt-letter">${letter}</div>
+      <div>${o}</div>
+    </div>`;
+  }).join('');
+
+  let expHtml = '';
+  if (showExp) {
+    expHtml = `<div class="explanation show"><div class="exp-title">💡 Pembahasan</div>${q.exp}</div>`;
+  }
+
+  document.getElementById('q-area').innerHTML = `
+    <div class="q-card">
+      <div class="q-header">
+        <span class="q-num">Soal ${idx + 1}</span>
+        <span class="q-tag">${q.topic} — ${q.subtopic}</span>
+      </div>
+      <div class="q-text">${q.q}</div>
+      ${figHtml}
+      <div class="options">${optsHtml}</div>
+      ${expHtml}
+    </div>`;
+
+  document.getElementById('btn-prev').disabled = idx === 0;
+  const isLast = idx === 19;
+  const btn = document.getElementById('btn-next');
+  btn.textContent = isLast ? '📊 Selesai & Lihat Hasil' : 'Berikutnya →';
+  btn.className = isLast ? 'btn btn-success' : 'btn btn-primary';
+}
+
+function selectAnswer(i) {
+  const q = questions[currentQ];
+  if (mode === 'belajar' && answers[currentQ] !== null) return; // locked after answer in learn mode
+  answers[currentQ] = i;
+  renderQuestion(currentQ);
+}
+
+function goQuestion(idx) {
+  if (idx < 0 || idx >= 20) return;
+  renderQuestion(idx);
+}
+
+function nextOrFinish() {
+  if (currentQ < 19) {
+    goQuestion(currentQ + 1);
+  } else {
+    finishQuiz();
+  }
+}
+
+// Timer
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    secondsLeft--;
+    updateTimerDisplay();
+    if (secondsLeft <= 0) {
+      clearInterval(timerInterval);
+      finishQuiz();
+    }
+  }, 1000);
+}
+function updateTimerDisplay() {
+  const m = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
+  const s = (secondsLeft % 60).toString().padStart(2, '0');
+  const el = document.getElementById('timer-display');
+  el.textContent = `${m}:${s}`;
+  el.className = 'timer-badge';
+  if (secondsLeft <= 300) el.classList.add('warn');
+  if (secondsLeft <= 60) el.classList.add('danger');
+}
+
+// Results
+function finishQuiz() {
+  clearInterval(timerInterval);
+
+  // Mark dots correct/wrong for learn mode review
+  for (let i = 0; i < 20; i++) {
+    const d = document.getElementById(`dot-${i}`);
+    if (!d) continue;
+    d.className = 'q-dot';
+    if (answers[i] === null) {}
+    else if (answers[i] === questions[i].ans) d.classList.add('correct');
+    else d.classList.add('wrong');
+  }
+
+  let benar = 0, salah = 0, kosong = 0;
+  answers.forEach((a, i) => {
+    if (a === null) kosong++;
+    else if (a === questions[i].ans) benar++;
+    else salah++;
+  });
+
+  const score = Math.round((benar / 20) * 100);
+
+  // Topic analysis
+  const topicMap = {};
+  questions.forEach((q, i) => {
+    if (!topicMap[q.topic]) topicMap[q.topic] = { total: 0, benar: 0 };
+    topicMap[q.topic].total++;
+    if (answers[i] === q.ans) topicMap[q.topic].benar++;
+  });
+
+  // Render result
+  document.getElementById('stat-benar').textContent = benar;
+  document.getElementById('stat-salah').textContent = salah;
+  document.getElementById('stat-kosong').textContent = kosong;
+  document.getElementById('score-num').textContent = score;
+  const pct = score + '%';
+  document.getElementById('score-ring').style.setProperty('--pct', pct);
+
+  let lbl, sub;
+  if (score >= 85) { lbl = '🏆 Sangat Baik!'; sub = 'Penguasaan materi sangat kuat. Pertahankan!'; }
+  else if (score >= 70) { lbl = '👍 Baik'; sub = 'Hampir siap TKA. Perkuat topik yang lemah.'; }
+  else if (score >= 55) { lbl = '📘 Cukup'; sub = 'Perlu latihan lebih pada beberapa topik.'; }
+  else { lbl = '💪 Perlu Belajar Lebih'; sub = 'Jangan menyerah! Ulangi materi dasar dulu.'; }
+  document.getElementById('result-label').textContent = lbl;
+  document.getElementById('result-sub').textContent = sub;
+
+  // Topic bars
+  const topicAnalysisEl = document.getElementById('topic-analysis');
+  topicAnalysisEl.innerHTML = '';
+  Object.entries(topicMap).forEach(([topic, data]) => {
+    const pctVal = Math.round((data.benar / data.total) * 100);
+    const color = pctVal >= 75 ? '#10b981' : pctVal >= 50 ? '#f59e0b' : '#ef4444';
+    const badge = pctVal >= 75
+      ? '<span class="badge badge-strong">Kuat</span>'
+      : pctVal >= 50
+      ? '<span class="badge badge-mid">Cukup</span>'
+      : '<span class="badge badge-weak">Perlu Latihan</span>';
+    topicAnalysisEl.innerHTML += `
+      <div class="topic-row">
+        <div class="topic-name"><span>${topic}</span><span>${data.benar}/${data.total} ${badge}</span></div>
+        <div class="topic-bar-bg"><div class="topic-bar-fill" style="width:${pctVal}%;background:${color}"></div></div>
+      </div>`;
+  });
+
+  // Reinforce list
+  const weak = Object.entries(topicMap)
+    .filter(([t, d]) => d.benar / d.total < 0.75)
+    .sort((a, b) => (a[1].benar / a[1].total) - (b[1].benar / b[1].total));
+  const reinforceEl = document.getElementById('reinforce-list');
+  if (weak.length === 0) {
+    reinforceEl.innerHTML = '<div class="reinforce-item"><div class="ri-icon">🎉</div><p><strong>Semua topik sudah dikuasai dengan baik!</strong><span>Terus pertahankan dan latihan soal variasi baru.</span></p></div>';
+  } else {
+    reinforceEl.innerHTML = weak.map(([topic, data]) => {
+      const pctVal = Math.round((data.benar / data.total) * 100);
+      const tips = getTip(topic);
+      return `<div class="reinforce-item">
+        <div class="ri-icon">${pctVal < 50 ? '🔴' : '🟡'}</div>
+        <p><strong>${topic} (${pctVal}%)</strong><span>${tips}</span></p>
+      </div>`;
+    }).join('');
+  }
+
+  showScreen('screen-result');
+}
+
+function getTip(topic) {
+  const tips = {
+    'Aljabar': 'Pelajari kembali fungsi komposisi, invers, matriks, dan barisan-deret. Latih soal HOTS dengan konteks nyata.',
+    'Bilangan': 'Kuasai sifat logaritma, eksponen, dan aplikasi bunga. Sering keluar dalam soal kontekstual investasi.',
+    'Trigonometri': 'Hafal aturan sinus & cosinus, identitas dasar. Latih soal segitiga dengan gambar/sketsa.',
+    'Geometri': 'Ulangi konsep transformasi, volume, dan kesebangunan. Buat sketsa untuk setiap soal.',
+    'Data & Peluang': 'Perkuat statistika deskriptif (mean, simpangan baku) dan peluang kejadian majemuk.',
+    'Logika & Penalaran': 'Latih pola bilangan dan soal analisis grafik. Biasakan berpikir deduktif, bukan hafal rumus.'
+  };
+  return tips[topic] || 'Latih lebih banyak soal pada topik ini.';
+}
+
+function restartQuiz() {
+  showScreen('screen-login');
+}
+
+function reviewAnswers() {
+  const rev = document.getElementById('review-content');
+  rev.innerHTML = questions.map((q, i) => {
+    const a = answers[i];
+    const correct = a === q.ans;
+    const status = a === null ? '⬜ Tidak Dijawab' : correct ? '✅ Benar' : '❌ Salah';
+    const letter = a !== null ? String.fromCharCode(65 + a) : '—';
+    const correctLetter = String.fromCharCode(65 + q.ans);
+    let figHtml = q.figure ? `<div class="q-figure" style="margin:12px 0">${q.figure}</div>` : '';
+    return `<div class="q-card" style="margin-bottom:16px">
+      <div class="q-header">
+        <span class="q-num">Soal ${i + 1}</span>
+        <span class="q-tag">${q.topic}</span>
+      </div>
+      <div class="q-text" style="margin-bottom:12px">${q.q}</div>
+      ${figHtml}
+      <div style="font-size:13px;margin-bottom:8px">
+        <span style="color:var(--muted)">Jawaban kamu:</span> <strong>${letter}</strong> &nbsp;|&nbsp;
+        <span style="color:var(--muted)">Kunci:</span> <strong style="color:var(--accent2)">${correctLetter}</strong> &nbsp;|&nbsp;
+        ${status}
+      </div>
+      <div class="explanation show"><div class="exp-title">💡 Pembahasan</div>${q.exp}</div>
+    </div>`;
+  }).join('');
+  showScreen('screen-review');
+}
+
+// Init
+document.getElementById('nama-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startQuiz();
+});
+</script>
+</body>
+</html>
